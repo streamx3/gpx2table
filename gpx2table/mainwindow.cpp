@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->groupBox->setCheckable(true);
+    ui->groupBox->setChecked(false);
 }
 
 MainWindow::~MainWindow()
@@ -30,9 +32,11 @@ bool only_jpegs(QStringList& data)
 }
 
 bool MainWindow::parse_GPX(QString& fname){
+    bool rv = true;
     fname_gpx = fname;
     QFile file(fname_gpx);
 //    file.open();
+    return rv;
 }
 
 void MainWindow::on_pushButton_Open_clicked()
@@ -41,24 +45,55 @@ void MainWindow::on_pushButton_Open_clicked()
                         tr("Save Address Book"), "/Users/a.shelestov/Documents/Project/Tsuman/Tracks", //TODO removeme
                         tr("Photos (*.jpg *.jpeg);; GPX files (*.gpx);;All Files (*)"));
     foreach (const QString &str, fnames)
-        qDebug() << str;
-
+    {
+        log("File " + str);
+    }
+//    log(fnames);
     if(only_jpegs(fnames))
     {
         // TODO process JPEGS
-        qDebug() << "JPEGS given";
+        log("JPEGS given");
     }
     else if(fnames.size() == 1 && (*fnames.begin()).endsWith(".gpx", Qt::CaseInsensitive))
     {
-        qDebug() << "GPX given";
+        log("GPX given");
     }
     else
     {
-        qDebug() << "Ambiguous given";
+        log("Ambiguous given");
         QMessageBox messageBox;
         messageBox.critical(0,"Error","Ambguous input.\nPlease open 1 GPX or several JPG files");
         messageBox.setFixedSize(500,200);
     }
 
 
+}
+
+void MainWindow::on_groupBox_toggled(bool arg1)
+{
+    ui->groupBox->setMaximumHeight(arg1 ? 16777215 : 30);
+    ui->textBrowser->setVisible(arg1 ? true : false);
+
+}
+
+
+void MainWindow::log(const QString& s)
+{
+    str_log.append(s);
+    str_log.append("\n");
+    ui->textBrowser->setText(str_log);
+}
+
+void MainWindow::log(const char* s)
+{
+    str_log.append(s);
+    str_log.append("\n");
+    ui->textBrowser->setText(str_log);
+}
+
+void MainWindow::log(QStringList& sl)
+{
+    foreach (const QString &s, sl) {
+        log(s);
+    }
 }

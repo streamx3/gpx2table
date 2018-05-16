@@ -32,3 +32,10 @@ HEADERS += \
 
 FORMS += \
         mainwindow.ui
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../GPX/release/ -lGPX
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../GPX/debug/ -lGPX
+else:unix: LIBS += -L$$OUT_PWD/../GPX/ -lGPX
+
+INCLUDEPATH += $$PWD/../GPX
+DEPENDPATH += $$PWD/../GPX
