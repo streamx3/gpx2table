@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS = \
-	gpx2table \		# app
-	GPX 			# lib from github.com/raptorswing/GPX
+        gpx2table \
+        libqgpx
 
-gpx2table.depends = GPX
+gpx2table.depends = libqgpx

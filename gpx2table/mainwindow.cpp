@@ -34,8 +34,11 @@ bool only_jpegs(QStringList& data)
 bool MainWindow::parse_GPX(QString& fname){
     bool rv = true;
     fname_gpx = fname;
-    QFile file(fname_gpx);
-//    file.open();
+    QFile file(fname_gpx); // TODO consider removal
+    QString parser_messages;
+    QGPX tmpGPX(fname, &parser_messages);
+//    GPX::parseGPXFile(fname,&(this->gpx_model),&parser_messages);
+    log("Parsing GPX file:\n" + parser_messages + "\nParsing done.");
     return rv;
 }
 
@@ -57,6 +60,7 @@ void MainWindow::on_pushButton_Open_clicked()
     else if(fnames.size() == 1 && (*fnames.begin()).endsWith(".gpx", Qt::CaseInsensitive))
     {
         log("GPX given");
+        parse_GPX(*fnames.begin());
     }
     else
     {
@@ -73,7 +77,6 @@ void MainWindow::on_groupBox_toggled(bool arg1)
 {
     ui->groupBox->setMaximumHeight(arg1 ? 16777215 : 30);
     ui->textBrowser->setVisible(arg1 ? true : false);
-
 }
 
 
@@ -93,7 +96,6 @@ void MainWindow::log(const char* s)
 
 void MainWindow::log(QStringList& sl)
 {
-    foreach (const QString &s, sl) {
+    foreach (const QString &s, sl)
         log(s);
-    }
 }

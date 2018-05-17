@@ -1,15 +1,17 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2018-05-16T02:41:19
+# Project created by QtCreator 2018-05-17T21:27:59
 #
 #-------------------------------------------------
 
-QT       += core gui positioning
+QT       += xml positioning
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       -= gui
 
-TARGET = gpx2table
-TEMPLATE = app
+TARGET = libqgpx
+TEMPLATE = lib
+
+DEFINES += LIBQGPX_LIBRARY
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -22,21 +24,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp
+        qgpx.cpp
 
 HEADERS += \
-        mainwindow.h
+        qgpx.h \
+        libqgpx_global.h 
 
-FORMS += \
-        mainwindow.ui
-
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libqgpx/release/ -llibqgpx
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libqgpx/debug/ -llibqgpx
-else:unix: LIBS += -L$$OUT_PWD/../libqgpx/ -llibqgpx
-
-INCLUDEPATH += $$PWD/../libqgpx
-DEPENDPATH += $$PWD/../libqgpx
+unix {
+    target.path = /usr/lib
+    INSTALLS += target
+}

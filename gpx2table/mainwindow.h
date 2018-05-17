@@ -3,8 +3,8 @@
 
 #include <QMainWindow>
 
+#include <qgpx.h>
 #include <QFileDialog>
-#include <GPX.h>
 
 namespace Ui {
 class MainWindow;
@@ -25,7 +25,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    GPX gpx_model;
+    QGPX gpx_model;
     QString fname_gpx;
     QString str_log;
     QStringList fnames_photos;

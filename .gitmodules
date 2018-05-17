@@ -1,4 +1,0 @@
-[submodule "GPX"]
-	path = GPX
-	url = https://github.com/raptorswing/GPX.git
-	branch = master
