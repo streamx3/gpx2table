@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QDebug>
+#include <QDebug>   // TODO removeme!
+#include <QSettings>
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -11,10 +12,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->groupBox->setCheckable(true);
     ui->groupBox->setChecked(false);
+    QString sett_filename = QDir(QApplication::applicationDirPath()
+                                 ).filePath("gpx2table.ini");
+    qDebug() << sett_filename;
+    QSettings settings(sett_filename, QSettings::IniFormat);
+    last_directory = settings.value("last_direcotry", "").toString();
+    qDebug() << last_directory;
 }
 
 MainWindow::~MainWindow()
 {
+    QSettings settings("gpx2table.ini", QSettings::IniFormat);
+    settings.setValue("last_direcotry", last_directory);
     delete ui;
 }
 
@@ -42,6 +51,15 @@ bool MainWindow::parse_GPX(QString& fname){
     return rv;
 }
 
+QString __getDirNameFromFile(QString filename){
+    QFileInfo nfo(filename);
+    if(!nfo.exists()){
+        return QString("");
+    }
+    auto dir = nfo.dir();
+    return dir.path();
+}
+
 void MainWindow::on_pushButton_Open_clicked()
 {
     QStringList fnames = QFileDialog::getOpenFileNames(this,
@@ -60,6 +78,8 @@ void MainWindow::on_pushButton_Open_clicked()
     else if(fnames.size() == 1 && (*fnames.begin()).endsWith(".gpx", Qt::CaseInsensitive))
     {
         log("GPX given");
+        last_directory = __getDirNameFromFile(*fnames.begin());
+        log("Dir: \"" + last_directory + "\"");
         parse_GPX(*fnames.begin());
     }
     else
@@ -69,6 +89,7 @@ void MainWindow::on_pushButton_Open_clicked()
         messageBox.critical(0,"Error","Ambguous input.\nPlease open 1 GPX or several JPG files");
         messageBox.setFixedSize(500,200);
     }
+
 
 
 }

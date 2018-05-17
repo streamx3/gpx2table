@@ -3,8 +3,9 @@
 
 #include <QMainWindow>
 
-#include <qgpx.h>
 #include <QFileDialog>
+
+#include <qgpx.h>
 
 namespace Ui {
 class MainWindow;
@@ -24,11 +25,12 @@ private slots:
     void on_groupBox_toggled(bool arg1);
 
 private:
-    Ui::MainWindow *ui;
-    QGPX gpx_model;
-    QString fname_gpx;
-    QString str_log;
-    QStringList fnames_photos;
+    Ui::MainWindow* ui;
+    QGPX            gpx_model;
+    QString         fname_gpx;
+    QString         str_log;
+    QStringList     fnames_photos;
+    QString         last_directory;
 
     bool parse_GPX(QString& fname);
     void log(const QString& s);
