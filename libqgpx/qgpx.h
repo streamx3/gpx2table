@@ -34,8 +34,9 @@ struct QGPXtrk{
 class LIBQGPXSHARED_EXPORT QGPX{
 public:
     struct Header{
+        QString xml_encodong;
         QString xmlns;
-        QString version;
+        QString gpx_version;
         QString creator;
         QString xmlns_xsi;
         QString xsi_schemaLocation;

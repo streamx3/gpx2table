@@ -5,25 +5,32 @@
 #include <QSettings>
 #include <QMessageBox>
 
+const QString MainWindow::settingsFileName = "gpx2table.ini"; // TODO rework
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
     ui->setupUi(this);
-    ui->groupBox->setCheckable(true);
-    ui->groupBox->setChecked(false);
-    QString sett_filename = QDir(QApplication::applicationDirPath()
-                                 ).filePath("gpx2table.ini");
-    qDebug() << sett_filename;
-    QSettings settings(sett_filename, QSettings::IniFormat);
-    last_directory = settings.value("last_direcotry", "").toString();
-    qDebug() << last_directory;
+    ui->textBrowser->setVisible(false);
+    ui->textBrowser->setMaximumHeight(0);
+//    QString sett_filename = QDir(QApplication::applicationDirPath()
+//                                 ).filePath(settingsFileName);
+//    log("Settings filename: " + sett_filename);
+    QSettings settings(settingsFileName, QSettings::IniFormat);
+    last_directory = settings.value("last_dir").toString();
+//    log("Last dir: " +  last_directory);
 }
 
 MainWindow::~MainWindow()
 {
-    QSettings settings("gpx2table.ini", QSettings::IniFormat);
-    settings.setValue("last_direcotry", last_directory);
+
+    QSettings settings(settingsFileName, QSettings::IniFormat);
+    if(last_directory.length() > 1){
+        settings.setValue("last_dir", last_directory);
+        settings.sync();
+    }
     delete ui;
 }
 
@@ -62,9 +69,10 @@ QString __getDirNameFromFile(QString filename){
 
 void MainWindow::on_pushButton_Open_clicked()
 {
+    log("Using dir: " + last_directory);
     QStringList fnames = QFileDialog::getOpenFileNames(this,
-                        tr("Save Address Book"), "/Users/a.shelestov/Documents/Project/Tsuman/Tracks", //TODO removeme
-                        tr("Photos (*.jpg *.jpeg);; GPX files (*.gpx);;All Files (*)"));
+                        tr("Save Address Book"), last_directory,
+                        tr("GPX files (*.gpx);; Photos (*.jpg *.jpeg);; All Files (*)"));
     foreach (const QString &str, fnames)
     {
         log("File " + str);
@@ -91,21 +99,14 @@ void MainWindow::on_pushButton_Open_clicked()
     }
 
 
-
 }
-
-void MainWindow::on_groupBox_toggled(bool arg1)
-{
-    ui->groupBox->setMaximumHeight(arg1 ? 16777215 : 30);
-    ui->textBrowser->setVisible(arg1 ? true : false);
-}
-
 
 void MainWindow::log(const QString& s)
 {
     str_log.append(s);
     str_log.append("\n");
     ui->textBrowser->setText(str_log);
+    qDebug() << s;
 }
 
 void MainWindow::log(const char* s)
@@ -113,10 +114,17 @@ void MainWindow::log(const char* s)
     str_log.append(s);
     str_log.append("\n");
     ui->textBrowser->setText(str_log);
+    qDebug() << s;
 }
 
 void MainWindow::log(QStringList& sl)
 {
     foreach (const QString &s, sl)
         log(s);
+}
+
+void MainWindow::on_checkBox_Log_stateChanged(int arg1)
+{
+    ui->textBrowser->setVisible(arg1 ? true : false);
+    ui->textBrowser->setMaximumHeight(arg1 ? 16777215 : 30);
 }

@@ -22,7 +22,7 @@ public:
 private slots:
     void on_pushButton_Open_clicked();
 
-    void on_groupBox_toggled(bool arg1);
+    void on_checkBox_Log_stateChanged(int arg1);
 
 private:
     Ui::MainWindow* ui;
@@ -31,6 +31,8 @@ private:
     QString         str_log;
     QStringList     fnames_photos;
     QString         last_directory;
+
+    static const QString settingsFileName;
 
     bool parse_GPX(QString& fname);
     void log(const QString& s);

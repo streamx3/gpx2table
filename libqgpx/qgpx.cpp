@@ -47,7 +47,57 @@ QGPX::QGPX(QString filename, QString *errmsgs){
     QXmlStreamReader::TokenType token_t;
     while(!inputStream.atEnd() && !inputStream.hasError()){
         token_t = inputStream.readNext();
-        qDebug() << inputStream.name().string();
+        switch(token_t){
+        case QXmlStreamReader::TokenType::StartDocument:
+            errmsgs->append("X StartDoc\n");
+            header.xml_encodong = *inputStream.documentEncoding().string();
+            errmsgs->append("enc = " + header.xml_encodong + "\n");
+            break;
+        case QXmlStreamReader::TokenType::EndDocument:
+            errmsgs->append("X EndDoc\n");
+            break;
+        case QXmlStreamReader::TokenType::StartElement:
+            errmsgs->append("X StartElement\n");
+            foreach (const QXmlStreamAttribute &attr, inputStream.attributes()) {
+                errmsgs->append(attr.name().toString() + " "
+                                + attr.value().toString());
+            }
+            break;
+        case QXmlStreamReader::TokenType::EndElement:
+            errmsgs->append("X EndElement\n");
+            break;
+        case QXmlStreamReader::TokenType::Characters:
+            errmsgs->append("X Characters\n");
+            if(inputStream.isCDATA()){
+                errmsgs->append(inputStream.text().toString());
+            }
+            break;
+        case QXmlStreamReader::TokenType::Comment:
+            errmsgs->append("X Comment\n");
+            break;
+        case QXmlStreamReader::TokenType::DTD:
+            errmsgs->append("X DTD\n");
+            break;
+        case QXmlStreamReader::TokenType::EntityReference:
+            errmsgs->append("X EntityReference\n");
+            break;
+        case QXmlStreamReader::TokenType::ProcessingInstruction:
+            errmsgs->append("X ProcessingInstruction\n");
+            break;
+        case QXmlStreamReader::TokenType::Invalid:
+            errmsgs->append("X Invalid\n");
+            break;
+        case QXmlStreamReader::TokenType::NoToken:
+            errmsgs->append("X NoToken\n");
+            break;
+
+        default:
+            errmsgs->append("X default\n");
+
+        }
+
+//        QString name = *(inputStream.name().string());
+//        qDebug() << name;
     }
 }
 
