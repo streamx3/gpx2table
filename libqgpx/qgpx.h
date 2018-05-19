@@ -6,6 +6,7 @@
 #include <QTime>
 #include <QList>
 #include <QString>
+#include <QDomDocument>
 #include <QGeoCoordinate>
 
 struct QGPXwpt{
@@ -44,8 +45,12 @@ public:
 public:
     QGPX();
     QGPX(QString filename, QString *errmsgs = nullptr);
-
     bool empty();
+
+private:
+    void __element2wpt(QDomElement &e);
+    void __element2trk(QDomElement &e);
+    void __element2trkpt(QDomElement &e);
 private:
     bool            is_empty;
     QString         encoding;

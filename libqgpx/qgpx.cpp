@@ -3,10 +3,29 @@
 #include <QDebug> // TODO removeme
 
 #include <QFile>
-#include <QXmlStreamReader>
+#include <iostream>
+using namespace std;
 
 QGPX::QGPX(){
     is_empty = true;
+}
+
+void QGPX::__element2wpt(QDomElement &e){
+    QDomNamedNodeMap atmap = e.attributes();
+    for(auto i = 0; i < atmap.count(); ++i){
+        QDomNode at = atmap.item(i);
+        qDebug() << at.nodeName() << "=" << at.nodeValue();
+    }
+
+    QDomNode n = e.firstChild();
+}
+
+void QGPX::__element2trk(QDomElement &e){
+
+}
+
+void QGPX::__element2trkpt(QDomElement &e){
+
 }
 
 QGPX::QGPX(QString filename, QString *errmsgs){
@@ -43,61 +62,26 @@ QGPX::QGPX(QString filename, QString *errmsgs){
         }
         return;
     }
-    QXmlStreamReader inputStream(&tmpfile);
-    QXmlStreamReader::TokenType token_t;
-    while(!inputStream.atEnd() && !inputStream.hasError()){
-        token_t = inputStream.readNext();
-        switch(token_t){
-        case QXmlStreamReader::TokenType::StartDocument:
-            errmsgs->append("X StartDoc\n");
-            header.xml_encodong = *inputStream.documentEncoding().string();
-            errmsgs->append("enc = " + header.xml_encodong + "\n");
-            break;
-        case QXmlStreamReader::TokenType::EndDocument:
-            errmsgs->append("X EndDoc\n");
-            break;
-        case QXmlStreamReader::TokenType::StartElement:
-            errmsgs->append("X StartElement\n");
-            foreach (const QXmlStreamAttribute &attr, inputStream.attributes()) {
-                errmsgs->append(attr.name().toString() + " "
-                                + attr.value().toString());
-            }
-            break;
-        case QXmlStreamReader::TokenType::EndElement:
-            errmsgs->append("X EndElement\n");
-            break;
-        case QXmlStreamReader::TokenType::Characters:
-            errmsgs->append("X Characters\n");
-            if(inputStream.isCDATA()){
-                errmsgs->append(inputStream.text().toString());
-            }
-            break;
-        case QXmlStreamReader::TokenType::Comment:
-            errmsgs->append("X Comment\n");
-            break;
-        case QXmlStreamReader::TokenType::DTD:
-            errmsgs->append("X DTD\n");
-            break;
-        case QXmlStreamReader::TokenType::EntityReference:
-            errmsgs->append("X EntityReference\n");
-            break;
-        case QXmlStreamReader::TokenType::ProcessingInstruction:
-            errmsgs->append("X ProcessingInstruction\n");
-            break;
-        case QXmlStreamReader::TokenType::Invalid:
-            errmsgs->append("X Invalid\n");
-            break;
-        case QXmlStreamReader::TokenType::NoToken:
-            errmsgs->append("X NoToken\n");
-            break;
 
-        default:
-            errmsgs->append("X default\n");
+    QDomDocument doc("gpx");
+    if(!doc.setContent(&tmpfile)){
+        tmpfile.close();
+        errmsgs->append("Failed to set content file for DOM document\n");
+        return;
+    }
+    tmpfile.close();
 
+    QDomElement docElem = doc.documentElement();
+    QDomNode n = docElem.firstChild();
+    while(!n.isNull()){
+        QDomElement e = n.toElement();
+        if(!e.isNull()){
+            cout << qPrintable(e.tagName()) << endl;
+            if(e.tagName() == "wpt"){
+                __element2wpt(e);
+            }
         }
-
-//        QString name = *(inputStream.name().string());
-//        qDebug() << name;
+        n = n.nextSibling();
     }
 }
 
