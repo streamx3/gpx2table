@@ -15,10 +15,10 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="2">
-     <widget class="QPushButton" name="pushButton_ExportExcel">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="pushButton_ExportHTML">
       <property name="text">
-       <string>Export Excel</string>
+       <string>Export HTML</string>
       </property>
      </widget>
     </item>
@@ -29,27 +29,47 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="pushButton_ExportHTML">
+    <item row="0" column="2">
+     <widget class="QPushButton" name="pushButton_ExportExcel">
       <property name="text">
-       <string>Export HTML</string>
+       <string>Export Excel</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="0" colspan="3">
-     <widget class="QTableView" name="tableView"/>
-    </item>
-    <item row="4" column="0">
+    <item row="6" column="0">
      <widget class="QCheckBox" name="checkBox_Log">
       <property name="text">
        <string>Log</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="0" colspan="3">
+    <item row="8" column="0" colspan="3">
      <widget class="QTextBrowser" name="textBrowser">
       <property name="enabled">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="3">
+     <widget class="QTableWidget" name="tableWidget"/>
+    </item>
+    <item row="6" column="1">
+     <widget class="QCheckBox" name="checkBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Convert 2 local time</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="2">
+     <widget class="QCheckBox" name="checkBox_2">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>show trackpoints</string>
       </property>
      </widget>
     </item>

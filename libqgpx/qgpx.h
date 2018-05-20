@@ -3,7 +3,7 @@
 
 #include "libqgpx_global.h"
 
-#include <QTime>
+#include <QDateTime>
 #include <QList>
 #include <QString>
 #include <QDomDocument>
@@ -11,10 +11,10 @@
 
 struct QGPXwpt{
     QGeoCoordinate  coordinate;
-    QTime           timestamp;
+    QDateTime       time;
     QString         CDATA;
-    QString         mediaName;
-    quint8          sat; // TODO research
+    QString         link;
+    QString         sat; // TODO research
 };
 
 struct QGPXtrkpt{
@@ -28,7 +28,7 @@ struct QGPXtrk{
      * Each track consists of track serments,
      * each segment consists of trackpoints
      */
-    QList<QList<QGPXtrkpt>> trkpt;
+    QList<QList<QGPXtrkpt>> segments;
     QString CDATA; /// Just a text string
 };
 
@@ -46,18 +46,19 @@ public:
     QGPX();
     QGPX(QString filename, QString *errmsgs = nullptr);
     bool empty();
+    QList<QGPXwpt> getWaypoints();
+
+    void dump_wpts(QString &s);
 
 private:
     void __element2wpt(QDomElement &e);
     void __element2trk(QDomElement &e);
     void __element2trkpt(QDomElement &e);
 private:
-    bool            is_empty;
     QString         encoding;
     Header          header;
-    QGPXtrk         track;
+    QList<QGPXtrk>  tracks;
     QList<QGPXwpt>  waypoints;
 };
-
 
 #endif // QGPX_H

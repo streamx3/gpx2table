@@ -6,18 +6,39 @@
 #include <iostream>
 using namespace std;
 
-QGPX::QGPX(){
-    is_empty = true;
-}
+QGPX::QGPX(){}
 
 void QGPX::__element2wpt(QDomElement &e){
+    QGPXwpt tmpwpt;
     QDomNamedNodeMap atmap = e.attributes();
     for(auto i = 0; i < atmap.count(); ++i){
         QDomNode at = atmap.item(i);
-        qDebug() << at.nodeName() << "=" << at.nodeValue();
+        if(at.nodeName() == "lat"){
+            tmpwpt.coordinate.setLatitude(at.nodeValue().toDouble());
+        }else if (at.nodeName() == "lon"){
+            tmpwpt.coordinate.setLongitude(at.nodeValue().toDouble());
+        }
     }
 
     QDomNode n = e.firstChild();
+    while(!n.isNull()) {
+        QDomElement e = n.toElement();
+        if(e.tagName() == "ele"){
+            tmpwpt.coordinate.setAltitude(e.text().toDouble());
+        }else if(e.tagName() == "name"){
+            tmpwpt.CDATA = e.text().toStdString().c_str();
+        }else if(e.tagName() == "time"){
+            tmpwpt.time = QDateTime::fromString(
+                        e.text().toStdString().c_str(),
+                        Qt::DateFormat::ISODate);
+        }else if(e.tagName() == "sat"){
+            tmpwpt.sat = e.text().toStdString().c_str();
+        }else if(e.tagName() == "link"){
+            tmpwpt.link = e.text().toStdString().c_str();
+        }
+        n = n.nextSibling();
+    }
+    this->waypoints.append(tmpwpt);
 }
 
 void QGPX::__element2trk(QDomElement &e){
@@ -80,6 +101,9 @@ QGPX::QGPX(QString filename, QString *errmsgs){
             if(e.tagName() == "wpt"){
                 __element2wpt(e);
             }
+            if(e.tagName() ==  "trk"){
+                __element2trk(e);
+            }
         }
         n = n.nextSibling();
     }
@@ -87,5 +111,43 @@ QGPX::QGPX(QString filename, QString *errmsgs){
 
 
 bool QGPX::empty(){
-    return this->is_empty;
+    if(!waypoints.empty())
+        return false;
+
+    if(!tracks.empty()){
+        foreach (auto &track, tracks) {
+            if(!track.segments.empty()){
+                foreach (auto &seg, track.segments) {
+                    if(!seg.empty())
+                        return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+void QGPX::dump_wpts(QString &s){
+    size_t i = 0;
+
+    foreach (auto &wpt, waypoints) {
+        s.append(QString::number(i++));
+        s.append(":{\n");
+        s.append("\tlat = " + QString::number(wpt.coordinate.latitude())
+                 + "\n");
+        s.append("\tlon = " + QString::number(wpt.coordinate.longitude())
+                 + "\n");
+        s.append("\tele = " + QString::number(wpt.coordinate.altitude())
+                 + "\n");
+        s.append("\ttime = " + wpt.time.toString() + "\n");
+        s.append("\tCDATA = " + wpt.CDATA + "\n");
+        s.append("\tlink = " + wpt.link + "\n");
+        s.append("\tsat = " + wpt.sat + "\n");
+        s.append("}\n");
+    }
+}
+
+QList<QGPXwpt> QGPX::getWaypoints(){
+    return waypoints;
 }

@@ -3,7 +3,11 @@
 
 #include <QMainWindow>
 
+#include <QMap>
+#include <QVector>
 #include <QFileDialog>
+#include <QSharedPointer>
+#include <QTableWidgetItem>
 
 #include <qgpx.h>
 
@@ -32,12 +36,16 @@ private:
     QStringList     fnames_photos;
     QString         last_directory;
 
+    QMap<QString, QVector<QSharedPointer<QTableWidgetItem*>>> cells;
+
     static const QString settingsFileName;
 
     bool parse_GPX(QString& fname);
     void log(const QString& s);
     void log(const char* s);
     void log(QStringList& sl);
+
+    void refresh_table();
 };
 
 #endif // MAINWINDOW_H

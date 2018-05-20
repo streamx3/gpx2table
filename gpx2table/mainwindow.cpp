@@ -21,6 +21,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QSettings settings(settingsFileName, QSettings::IniFormat);
     last_directory = settings.value("last_dir").toString();
 //    log("Last dir: " +  last_directory);
+
+    QVector<QSharedPointer<QTableWidgetItem*>> tmpdata;
+    cells["id" ] = tmpdata;
+    cells["lat"] = tmpdata;
+    cells["lon"] = tmpdata;
+    cells["ele"] = tmpdata;
+    cells["time"] = tmpdata;
+    cells["CDATA"] = tmpdata;
+    cells["link" ] = tmpdata;
+    cells["sat"] = tmpdata;
+    cells["speed"] = tmpdata;       // TODO implement in future
+    cells["orientation"] = tmpdata; // TODO implement in future
 }
 
 MainWindow::~MainWindow()
@@ -55,6 +67,11 @@ bool MainWindow::parse_GPX(QString& fname){
     QGPX tmpGPX(fname, &parser_messages);
 //    GPX::parseGPXFile(fname,&(this->gpx_model),&parser_messages);
     log("Parsing GPX file:\n" + parser_messages + "\nParsing done.");
+    parser_messages.clear();
+    tmpGPX.dump_wpts(parser_messages);
+    log("Waypoints:\n" + parser_messages + "\n");
+    if(!tmpGPX.empty())
+        gpx_model = tmpGPX;
     return rv;
 }
 
@@ -97,8 +114,6 @@ void MainWindow::on_pushButton_Open_clicked()
         messageBox.critical(0,"Error","Ambguous input.\nPlease open 1 GPX or several JPG files");
         messageBox.setFixedSize(500,200);
     }
-
-
 }
 
 void MainWindow::log(const QString& s)
@@ -127,4 +142,14 @@ void MainWindow::on_checkBox_Log_stateChanged(int arg1)
 {
     ui->textBrowser->setVisible(arg1 ? true : false);
     ui->textBrowser->setMaximumHeight(arg1 ? 16777215 : 30);
+}
+
+void MainWindow::refresh_table(){
+    QList<QGPXwpt> wpts = gpx_model.getWaypoints();
+    ui->tableWidget->clearContents();
+    ui->tableWidget->setRowCount(wpts.count());
+    ui->tableWidget->setColumnCount(8);
+//    foreach (auto &wpt, wpts) {
+
+//    }
 }
