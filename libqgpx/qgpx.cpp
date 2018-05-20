@@ -97,7 +97,6 @@ QGPX::QGPX(QString filename, QString *errmsgs){
     while(!n.isNull()){
         QDomElement e = n.toElement();
         if(!e.isNull()){
-            cout << qPrintable(e.tagName()) << endl;
             if(e.tagName() == "wpt"){
                 __element2wpt(e);
             }
@@ -148,6 +147,6 @@ void QGPX::dump_wpts(QString &s){
     }
 }
 
-QList<QGPXwpt> QGPX::getWaypoints(){
+QVector<QGPXwpt> QGPX::getWaypoints(){
     return waypoints;
 }

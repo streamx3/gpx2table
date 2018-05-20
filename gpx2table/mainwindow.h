@@ -9,6 +9,8 @@
 #include <QSharedPointer>
 #include <QTableWidgetItem>
 
+typedef QVector<QTableWidgetItem> QTabWidItemVec;
+
 #include <qgpx.h>
 
 namespace Ui {
@@ -28,15 +30,18 @@ private slots:
 
     void on_checkBox_Log_stateChanged(int arg1);
 
+    void on_checkBox_LocalTime_toggled(bool checked);
+
 private:
     Ui::MainWindow* ui;
     QGPX            gpx_model;
     QString         fname_gpx;
     QString         str_log;
     QStringList     fnames_photos;
+    QStringList     column_names;
     QString         last_directory;
 
-    QMap<QString, QVector<QSharedPointer<QTableWidgetItem*>>> cells;
+    QMap<QString, QTabWidItemVec> columns;
 
     static const QString settingsFileName;
 

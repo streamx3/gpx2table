@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QMessageBox>
 
+#include "version.h"
+
 const QString MainWindow::settingsFileName = "gpx2table.ini"; // TODO rework
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -13,6 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+
+    this->setWindowTitle(QString("gpx2table v") + APP_VERION_STR);
+
     ui->textBrowser->setVisible(false);
     ui->textBrowser->setMaximumHeight(0);
 //    QString sett_filename = QDir(QApplication::applicationDirPath()
@@ -20,19 +25,48 @@ MainWindow::MainWindow(QWidget *parent) :
 //    log("Settings filename: " + sett_filename);
     QSettings settings(settingsFileName, QSettings::IniFormat);
     last_directory = settings.value("last_dir").toString();
-//    log("Last dir: " +  last_directory);
 
-    QVector<QSharedPointer<QTableWidgetItem*>> tmpdata;
-    cells["id" ] = tmpdata;
-    cells["lat"] = tmpdata;
-    cells["lon"] = tmpdata;
-    cells["ele"] = tmpdata;
-    cells["time"] = tmpdata;
-    cells["CDATA"] = tmpdata;
-    cells["link" ] = tmpdata;
-    cells["sat"] = tmpdata;
-    cells["speed"] = tmpdata;       // TODO implement in future
-    cells["orientation"] = tmpdata; // TODO implement in future
+    QString window_width = settings.value("window_hsize").toString();
+    if(1 == settings.value("use_localtime").toInt()){
+        ui->checkBox_LocalTime->setChecked(true);
+    }
+    if(window_width != "0"){
+        qDebug() << "Attempt to set size: " << window_width;
+        QSize tmpsz = this->size();
+        tmpsz.setWidth(window_width.toInt());
+        this->resize(tmpsz);
+    }
+
+    columns["lat"] = QTabWidItemVec();
+    columns["lon"] = QTabWidItemVec();
+    columns["ele"] = QTabWidItemVec();
+    columns["time"] = QTabWidItemVec();
+    columns["CDATA"] = QTabWidItemVec();
+    columns["link" ] = QTabWidItemVec();
+    columns["sat"] = QTabWidItemVec();
+    columns["speed"] = QTabWidItemVec();       // TODO implement in future
+    columns["orientation"] = QTabWidItemVec(); // TODO implement in future
+
+    ui->tableWidget->setColumnCount(8);
+    column_names.push_back("Latitude");
+    column_names.push_back("Longitude");
+    column_names.push_back("Elev.");
+    column_names.push_back("Time");
+    column_names.push_back("CDATA");
+    column_names.push_back("Link");
+    column_names.push_back("Sat");
+    column_names.push_back("Speed");
+
+    ui->tableWidget->setColumnWidth(  0,  70 );
+    ui->tableWidget->setColumnWidth(  1,  70 );
+    ui->tableWidget->setColumnWidth(  2,  30 );
+    ui->tableWidget->setColumnWidth(  3,  170 );
+    ui->tableWidget->setColumnWidth(  4,  90 );
+    ui->tableWidget->setColumnWidth(  5,  160 );
+    ui->tableWidget->setColumnWidth(  6,  30 );
+    ui->tableWidget->setColumnWidth(  7,  40 );
+
+    ui->tableWidget->setHorizontalHeaderLabels(column_names);
 }
 
 MainWindow::~MainWindow()
@@ -41,22 +75,22 @@ MainWindow::~MainWindow()
     QSettings settings(settingsFileName, QSettings::IniFormat);
     if(last_directory.length() > 1){
         settings.setValue("last_dir", last_directory);
-        settings.sync();
     }
+    settings.setValue("window_hsize", ui->centralWidget->geometry().width());
+    settings.setValue("use_localtime",
+                      ui->checkBox_LocalTime->isChecked() ? 1 : 0);
+    settings.sync();
     delete ui;
 }
 
-bool only_jpegs(QStringList& data)
-{
-    bool rv = true;
+bool only_jpegs(QStringList& data){
     foreach(const QString &str, data)
     {
         if(!str.endsWith(".jpeg", Qt::CaseInsensitive) &&
                 !str.endsWith(".jpg", Qt::CaseInsensitive))
-            rv = false;
-        break;
+            return false;
     }
-    return rv;
+    return true;
 }
 
 bool MainWindow::parse_GPX(QString& fname){
@@ -72,6 +106,7 @@ bool MainWindow::parse_GPX(QString& fname){
     log("Waypoints:\n" + parser_messages + "\n");
     if(!tmpGPX.empty())
         gpx_model = tmpGPX;
+    refresh_table();
     return rv;
 }
 
@@ -121,7 +156,7 @@ void MainWindow::log(const QString& s)
     str_log.append(s);
     str_log.append("\n");
     ui->textBrowser->setText(str_log);
-    qDebug() << s;
+//    qDebug() << s;
 }
 
 void MainWindow::log(const char* s)
@@ -129,7 +164,7 @@ void MainWindow::log(const char* s)
     str_log.append(s);
     str_log.append("\n");
     ui->textBrowser->setText(str_log);
-    qDebug() << s;
+//    qDebug() << s;
 }
 
 void MainWindow::log(QStringList& sl)
@@ -145,11 +180,39 @@ void MainWindow::on_checkBox_Log_stateChanged(int arg1)
 }
 
 void MainWindow::refresh_table(){
-    QList<QGPXwpt> wpts = gpx_model.getWaypoints();
+    QVector<QGPXwpt> wpts = gpx_model.getWaypoints();
     ui->tableWidget->clearContents();
     ui->tableWidget->setRowCount(wpts.count());
     ui->tableWidget->setColumnCount(8);
-//    foreach (auto &wpt, wpts) {
 
-//    }
+    for(auto it = columns.begin(); it != columns.end(); ++it){
+        it.value().resize(wpts.size());
+    }
+    for(int i = 0; i < wpts.size(); ++i) {
+        columns["lat"][i].setText(QString::number(wpts[i].coordinate.latitude(), 'G', 10));
+        columns["lon"][i].setText(QString::number(wpts[i].coordinate.longitude(), 'G', 10));
+        columns["ele"][i].setText(QString::number(wpts[i].coordinate.altitude(), 'G', 5));
+        if(ui->checkBox_LocalTime->isChecked()){
+            auto cur_ts = QDateTime::currentDateTime().timeSpec();
+            wpts[i].time = wpts[i].time.toTimeSpec(cur_ts);
+        }
+        columns["time"][i].setText(wpts[i].time.toString());
+        columns["CDATA"][i].setText(wpts[i].CDATA);
+        columns["link"][i].setText(wpts[i].link);
+        columns["sat"][i].setText(wpts[i].sat);
+
+        ui->tableWidget->setItem(i,0,&(columns["lat"][i]));
+        ui->tableWidget->setItem(i,1,&(columns["lon"][i]));
+        ui->tableWidget->setItem(i,2,&(columns["ele"][i]));
+        ui->tableWidget->setItem(i,3,&(columns["time"][i]));
+        ui->tableWidget->setItem(i,4,&(columns["CDATA"][i]));
+        ui->tableWidget->setItem(i,5,&(columns["link"][i]));
+        ui->tableWidget->setItem(i,6,&(columns["sat"][i]));
+    }
+
+}
+
+void MainWindow::on_checkBox_LocalTime_toggled(bool)
+{
+//    refresh_table(); // TODO Fix before commit
 }

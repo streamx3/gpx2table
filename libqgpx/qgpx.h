@@ -4,7 +4,7 @@
 #include "libqgpx_global.h"
 
 #include <QDateTime>
-#include <QList>
+#include <QVector>
 #include <QString>
 #include <QDomDocument>
 #include <QGeoCoordinate>
@@ -46,7 +46,7 @@ public:
     QGPX();
     QGPX(QString filename, QString *errmsgs = nullptr);
     bool empty();
-    QList<QGPXwpt> getWaypoints();
+    QVector<QGPXwpt> getWaypoints();
 
     void dump_wpts(QString &s);
 
@@ -57,8 +57,8 @@ private:
 private:
     QString         encoding;
     Header          header;
-    QList<QGPXtrk>  tracks;
-    QList<QGPXwpt>  waypoints;
+    QVector<QGPXtrk>  tracks;
+    QVector<QGPXwpt>  waypoints;
 };
 
 #endif // QGPX_H
