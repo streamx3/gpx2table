@@ -26,7 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QSettings settings(settingsFileName, QSettings::IniFormat);
     last_directory = settings.value("last_dir").toString();
 
-    QString window_width = settings.value("window_hsize").toString();
+    QString window_width = settings.value("width").toString();
+    QString window_height = settings.value("height").toString();
     if(1 == settings.value("use_localtime").toInt()){
         ui->checkBox_LocalTime->setChecked(true);
     }
@@ -37,11 +38,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->spinBox->setVisible(debug > 0 ? true : false);
     ui->spinBox->setValue(debug);
 
-    if(window_width != "0"){
+    if(window_width.toInt() > 100){
         if(debug)
-            qDebug() << "Attempt to set size: " << window_width;
+            qDebug() << "Attempt to set size: " << window_width << " " << window_height;
         QSize tmpsz = this->size();
         tmpsz.setWidth(window_width.toInt());
+        if(window_height.toInt() > 100){
+            tmpsz.setHeight(window_height.toInt());
+        }
         this->resize(tmpsz);
     }
 
@@ -56,7 +60,16 @@ MainWindow::MainWindow(QWidget *parent) :
     column_names.push_back("Speed");
 
     // TODO apply OS-dependent preset for column widths or adjust to content
-    int col_widths[] = {70,70,30,170,90,160,30,40};
+#define MY_TABLE_COL_SZ 8
+    int col_widths[MY_TABLE_COL_SZ] = {70,70,30,170,90,160,30,40};
+    settings.beginReadArray("cols");
+    for(int i = 0; i < MY_TABLE_COL_SZ; ++i){
+        settings.setArrayIndex(i);
+        auto tmp = settings.value("c").toInt();
+        if(tmp > 10)
+            col_widths[i] = tmp;
+    }
+    settings.endArray();
 
     for (auto i = 0; i < 8; ++i){
         ui->tableWidget->setColumnWidth(i, col_widths[i]);
@@ -72,11 +85,21 @@ MainWindow::~MainWindow()
     if(last_directory.length() > 1){
         settings.setValue("last_dir", last_directory);
     }
-    settings.setValue("window_hsize", ui->centralWidget->geometry().width());
+    settings.setValue("width", ui->centralWidget->geometry().width());
+    settings.setValue("height", ui->centralWidget->geometry().height());
     settings.setValue("use_localtime",
                       ui->checkBox_LocalTime->isChecked() ? 1 : 0);
     settings.setValue("debug", debug);
     settings.setValue("log", ui->checkBox_Log->isChecked() ? 1 : 0);
+
+    // Column Array
+    settings.beginWriteArray("cols");
+    for(int i = 0; i < MY_TABLE_COL_SZ; ++i){
+        settings.setArrayIndex(i);
+        settings.setValue("c", ui->tableWidget->columnWidth(i));
+    }
+    settings.endArray();
+
     settings.sync();
     delete ui;
 }

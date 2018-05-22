@@ -43,6 +43,9 @@
     </item>
     <item row="0" column="1">
      <widget class="QPushButton" name="pushButton_ExportHTML">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>Export HTML</string>
       </property>
@@ -57,6 +60,9 @@
     </item>
     <item row="0" column="2">
      <widget class="QPushButton" name="pushButton_ExportExcel">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>Export Excel</string>
       </property>
