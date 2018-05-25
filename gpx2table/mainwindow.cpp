@@ -11,10 +11,12 @@ const QString MainWindow::settingsFileName = "gpx2table.ini"; // TODO rework
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
+    ui(new Ui::MainWindow){
 
     ui->setupUi(this);
+    view = nullptr;
+    connect(ui->tableWidget, ui->tableWidget->cellClicked,
+            this, this->showDetails);
 
     this->setWindowTitle(QString("gpx2table v") + APP_VERION_STR);
 
@@ -40,7 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(window_width.toInt() > 100){
         if(debug)
-            qDebug() << "Attempt to set size: " << window_width << " " << window_height;
+            qDebug() << "Attempt to set size: " << window_width
+                     << " " << window_height;
         QSize tmpsz = this->size();
         tmpsz.setWidth(window_width.toInt());
         if(window_height.toInt() > 100){
@@ -78,29 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->setHorizontalHeaderLabels(column_names);
 }
 
-MainWindow::~MainWindow()
-{
-
-    QSettings settings(settingsFileName, QSettings::IniFormat);
-    if(last_directory.length() > 1){
-        settings.setValue("last_dir", last_directory);
-    }
-    settings.setValue("width", ui->centralWidget->geometry().width());
-    settings.setValue("height", ui->centralWidget->geometry().height());
-    settings.setValue("use_localtime",
-                      ui->checkBox_LocalTime->isChecked() ? 1 : 0);
-    settings.setValue("debug", debug);
-    settings.setValue("log", ui->checkBox_Log->isChecked() ? 1 : 0);
-
-    // Column Array
-    settings.beginWriteArray("cols");
-    for(int i = 0; i < MY_TABLE_COL_SZ; ++i){
-        settings.setArrayIndex(i);
-        settings.setValue("c", ui->tableWidget->columnWidth(i));
-    }
-    settings.endArray();
-
-    settings.sync();
+MainWindow::~MainWindow(){
     delete ui;
 }
 
@@ -142,6 +123,10 @@ QString __getDirNameFromFile(QString filename){
 
 void MainWindow::on_pushButton_Open_clicked()
 {
+    if(!view.isNull()){
+        view->close();
+        view = nullptr;
+    }
     log("Using dir: " + last_directory);
     QStringList fnames = QFileDialog::getOpenFileNames(this,
                         tr("Save Address Book"), last_directory,
@@ -232,19 +217,8 @@ void MainWindow::refresh_table(){
         p_tmpItem = new QTableWidgetItem(wpts[i].CDATA);
         ui->tableWidget->setItem(i,4,p_tmpItem);
 
-        QWidget* pWidget = new QWidget();
-        QPushButton* btn_edit = new QPushButton();
-        btn_edit->setText(wpts[i].link);
-        QHBoxLayout* pLayout = new QHBoxLayout(pWidget);
-        pLayout->addWidget(btn_edit);
-        pLayout->setAlignment(Qt::AlignCenter);
-        pLayout->setContentsMargins(0, 0, 0, 0);
-        pWidget->setLayout(pLayout);
-
-
-//        p_tmpItem = new QTableWidgetItem(wpts[i].link);
-        ui->tableWidget->setCellWidget(i,5,pWidget);
-//        ui->tableWidget->setItem(i,5,p_tmpItem);
+        p_tmpItem = new QTableWidgetItem(wpts[i].link);
+        ui->tableWidget->setItem(i,5,p_tmpItem);
 
         p_tmpItem = new QTableWidgetItem(wpts[i].sat);
         ui->tableWidget->setItem(i,6,p_tmpItem);
@@ -265,4 +239,63 @@ void MainWindow::on_pushButton_dbg_clicked()
 void MainWindow::on_spinBox_valueChanged(int arg1)
 {
     this->debug = arg1 > 5 ? 5 : arg1;
+}
+
+void MainWindow::showDetails(int row, int column){
+    QStringList permitter_types = {"Photo", "Voice recording", "Text"};
+    if(5 != column)
+        return;
+
+    // Specifially handlihg showing logic
+    auto type = ui->tableWidget->item(row, column - 1)->text();
+    auto item = ui->tableWidget->item(row, column);
+    auto data = item->text();
+
+    if(!permitter_types.contains(type))
+        return;
+    if(debug){
+        qDebug() << "type: " << type;
+        qDebug() << "data: " << data;
+    }
+
+    if(false == view.isNull())
+        (*view).close();
+    view = QSharedPointer<ViewDialog>(new ViewDialog);
+    (*view).setData(type, data, last_directory, item);
+    (*view).show();
+}
+
+
+void MainWindow::on_MainWindow_destroyed(){
+    qDebug() << "destroyed";
+}
+
+void MainWindow::closeEvent(QCloseEvent*){
+    if(debug)
+        qDebug() << "Close event";
+    if(!view.isNull()){
+        view->close();
+        view = nullptr;
+    }
+
+    QSettings settings(settingsFileName, QSettings::IniFormat);
+    if(last_directory.length() > 1){
+        settings.setValue("last_dir", last_directory);
+    }
+    settings.setValue("width", ui->centralWidget->geometry().width());
+    settings.setValue("height", ui->centralWidget->geometry().height());
+    settings.setValue("use_localtime",
+                      ui->checkBox_LocalTime->isChecked() ? 1 : 0);
+    settings.setValue("debug", debug);
+    settings.setValue("log", ui->checkBox_Log->isChecked() ? 1 : 0);
+
+    // Column Array
+    settings.beginWriteArray("cols");
+    for(int i = 0; i < MY_TABLE_COL_SZ; ++i){
+        settings.setArrayIndex(i);
+        settings.setValue("c", ui->tableWidget->columnWidth(i));
+    }
+    settings.endArray();
+
+    settings.sync();
 }

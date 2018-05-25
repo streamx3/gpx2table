@@ -25,14 +25,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    viewdialog.cpp
 
 HEADERS += \
         mainwindow.h \
-    version.h
+    version.h \
+    viewdialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    viewdialog.ui
 
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libqgpx/release/ -llibqgpx

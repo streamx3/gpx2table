@@ -46,6 +46,7 @@ public:
     QGPX();
     QGPX(QString filename, QString *errmsgs = nullptr);
     bool empty();
+    static bool isKnownCDATA(QString str);
     QVector<QGPXwpt> getWaypoints();
 
     void dump_wpts(QString &s);
@@ -54,11 +55,12 @@ private:
     void __element2wpt(QDomElement &e);
     void __element2trk(QDomElement &e);
     void __element2trkpt(QDomElement &e);
-private:
-    QString         encoding;
-    Header          header;
-    QVector<QGPXtrk>  tracks;
-    QVector<QGPXwpt>  waypoints;
+
+    static QStringList          known_CDATAs;
+    QString                     encoding;
+    Header                      header;
+    QVector<QGPXtrk>            tracks;
+    QVector<QGPXwpt>            waypoints;
 };
 
 #endif // QGPX_H

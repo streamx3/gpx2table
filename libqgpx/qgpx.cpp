@@ -6,6 +6,24 @@
 #include <iostream>
 using namespace std;
 
+// From OSMtracker
+QStringList QGPX::known_CDATAs = { "Photo", "Voice recording", "School",
+    "Police", "Fire station", "Bank", "Playground", "Pub", "Hotel", "Motel",
+    "Hostel", "Restaurant", "Fast food", "Camp site", "Bus stop", "Railway",
+    "Telephone", "Post box", "ATM", "Bollard", "Toilets", "Shelter",
+    "Surveillance", "Max 30", "Max 50", "Max 80", "Max 100", "Max 110",
+    "Max 120", "No exit", "Traffic light", "One way", "Fuel station", "Parking",
+    "Emergency Phone", "Turning circle", "Speed camera", "View point",
+    "Information", "Picnic site", "Attraction", "Theme park", "Castle",
+    "Monument", "Museum", "Cinema", "Bench", "Water", "Pharmacy", "Shop",
+    "Marina", "Sport", "Taxi", "Hospital, Doctors", "Recycling",
+    "Place of worship", "Post office", "Library", "Bridge", "Zebra crossing",
+    "Motorway", "Trunk", "Primary", "Secondary", "Tertiary", "Residential",
+    "Service", "Track", "Cycleway", "Footway", "Bridleway", "Pedestrian",
+    "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Farm", "Landfill",
+    "Basin", "Reservoir", "Forest", "Allotments", "Cemetery",
+    "Recreation ground"};
+
 QGPX::QGPX(){}
 
 void QGPX::__element2wpt(QDomElement &e){
@@ -37,6 +55,10 @@ void QGPX::__element2wpt(QDomElement &e){
             tmpwpt.link = e.text().toStdString().c_str();
         }
         n = n.nextSibling();
+    }
+    if(!QGPX::isKnownCDATA(tmpwpt.CDATA)){
+        tmpwpt.link = tmpwpt.CDATA;
+        tmpwpt.CDATA = "Text";
     }
     this->waypoints.append(tmpwpt);
 }
@@ -149,4 +171,8 @@ void QGPX::dump_wpts(QString &s){
 
 QVector<QGPXwpt> QGPX::getWaypoints(){
     return waypoints;
+}
+
+bool QGPX::isKnownCDATA(QString str){
+    if(known_CDATAs.contains(str));
 }
