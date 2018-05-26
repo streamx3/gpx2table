@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QDebug>
+#include <QAudioOutput>
 #include <QGraphicsPixmapItem>
 
 ViewDialog::ViewDialog(QWidget *parent) :
@@ -67,6 +68,13 @@ void ViewDialog::setData(QString _type, QString _data,
         this->setSizePolicy(QSizePolicy::Preferred,
                             QSizePolicy::Minimum);
         this->adjustSize();
+
+//        this
+        QAudioDeviceInfo nfo(QAudioDeviceInfo::defaultOutputDevice());
+        auto codecs = nfo.supportedCodecs();
+        qDebug() << "Codecs sz = " << codecs.size();
+        foreach(auto &c, codecs)
+            qDebug() << c;
     }else if ("Text" == type){ // TODO check me
         this->setWindowTitle(type+ ": " + data);
         ui->pushButton_play->setVisible(false);
