@@ -10,16 +10,43 @@ ViewDialog::ViewDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ViewDialog)
 {
-    image   = nullptr;
-    scene   = nullptr;
-    GPitem  = nullptr;
-    isImage = false;
+    image       = nullptr;
+    scene       = nullptr;
+    GPitem      = nullptr;
+    isImage     = false;
+    isPlaying   = false;
     ui->setupUi(this);
+
+    connect(&player, &QMediaPlayer::positionChanged, \
+            this, &ViewDialog::on_position_changed);
+    connect(&player, &QMediaPlayer::durationChanged, \
+            this, &ViewDialog::on_duration_changed);
 }
 
 ViewDialog::~ViewDialog()
 {
     delete ui;
+}
+
+static QString local_timecode(qint64 pos){
+    quint64 min, sec;
+    pos/= 1000;
+    sec = pos % 60;
+    min = pos / 60;
+    QString rv(QString("%1:%2")\
+               .arg(min, 2, 10, QChar('0'))\
+               .arg(sec, 2, 10, QChar('0')));
+    return rv;
+}
+
+void ViewDialog::on_position_changed(qint64 pos){
+    ui->horizontalSlider_timeline->setValue(pos);
+
+    ui->label_timecode->setText(local_timecode(pos));
+}
+
+void ViewDialog::on_duration_changed(qint64 dur){
+    ui->horizontalSlider_timeline->setMaximum(dur);
 }
 
 void ViewDialog::setData(QString _type, QString _data,
@@ -60,6 +87,7 @@ void ViewDialog::setData(QString _type, QString _data,
         ui->graphicsView->show();
 
     }else if ("Voice recording" == type) {
+        isPlaying = false;
         this->setWindowTitle(type+ ": " + data);
         ui->pushButton_update->setVisible(false);
         ui->plainTextEdit->setVisible(false);
@@ -69,12 +97,14 @@ void ViewDialog::setData(QString _type, QString _data,
                             QSizePolicy::Minimum);
         this->adjustSize();
 
-//        this
-        QAudioDeviceInfo nfo(QAudioDeviceInfo::defaultOutputDevice());
-        auto codecs = nfo.supportedCodecs();
-        qDebug() << "Codecs sz = " << codecs.size();
-        foreach(auto &c, codecs)
-            qDebug() << c;
+//        QAudioDeviceInfo nfo(QAudioDeviceInfo::defaultOutputDevice());
+//        auto codecs = nfo.supportedCodecs();
+//        qDebug() << "Codecs sz = " << codecs.size();
+//        foreach(auto &c, codecs)
+//            qDebug() << c;
+        player.setMedia(QUrl::fromLocalFile(
+                            QDir::cleanPath(
+                                _path + QDir::separator() + _data)));
     }else if ("Text" == type){ // TODO check me
         this->setWindowTitle(type+ ": " + data);
         ui->pushButton_play->setVisible(false);
@@ -96,6 +126,8 @@ void ViewDialog::on_pushButton_update_clicked(){
 
 void ViewDialog::closeEvent(QCloseEvent *event){
     qDebug() << "View Close event";
+    player.stop();
+    isPlaying = false;
     // TODO uncomment ASAP
 //    if(nullptr != image)
 //        delete image;
@@ -129,4 +161,24 @@ void ViewDialog::updateImageSize(){
 
 void ViewDialog::showEvent(QShowEvent * event){
     updateImageSize();
+}
+
+void ViewDialog::on_pushButton_play_clicked(){
+    if(isPlaying == false){
+        isPlaying = true;
+        player.play();
+        ui->pushButton_play->setText("Pause");
+    }else{
+        isPlaying = false;
+        player.pause();
+        ui->pushButton_play->setText("Play");
+    }
+}
+
+void ViewDialog::on_horizontalSlider_timeline_sliderMoved(int position){
+    player.setPosition((quint64)position);
+}
+
+void ViewDialog::on_horizontalSlider_volume_sliderMoved(int position){
+    player.setVolume((quint64)position);
 }
